@@ -52,7 +52,9 @@ INSERT INTO SINHVIEN (MSSV, TENSV, SODT, LOP, DIACHI) VALUES
 ('13520003', 'Nguyễn Anh Hải', '0947578688', 'IE205.R12', 'QUẬN 9'),
 ('13520004', 'Phạm Tài',       '0956757869', 'IE202.A22', 'QUẬN 1'),
 ('13520005', 'Lê Thúy Hằng',   '0976668688', 'SE304.E22', 'THỦ ĐỨC'),
-('13520006', 'Ưng Hồng Ân',    '0957475898', 'IE208.F33', 'QUẬN 2');
+('13520006', 'Ưng Hồng Ân',    '0957475898', 'IE208.F33', 'QUẬN 2'),
+-- Sinh viên mới, chưa có đề tài, dùng cho happy case assign
+('13520007', 'Trần Minh Khang','0905123456', 'SE103.U32', 'QUẬN 3');
 
 -- DETAI
 INSERT INTO DETAI (MSDT, TENDT) VALUES
@@ -61,7 +63,9 @@ INSERT INTO DETAI (MSDT, TENDT) VALUES
 ('97003', 'Bán đấu giá trên mạng'),
 ('97004', 'Quản lý siêu thị'),
 ('97005', 'Xử lý ảnh'),
-('97006', 'Hệ giải toán thông minh');
+('97006', 'Hệ giải toán thông minh'),
+-- Đề tài mới, chưa có sinh viên, dùng cho happy case assign
+('97007', 'Quản lý phòng gym');
 
 -- SV_DETAI
 INSERT INTO SV_DETAI (MSSV, MSDT) VALUES
@@ -79,5 +83,19 @@ INSERT INTO SV_DETAI (MSSV, MSDT) VALUES
 -- SELECT * FROM SINHVIEN;
 -- SELECT * FROM DETAI;
 -- SELECT * FROM SV_DETAI;
+
+-- GỢI Ý CASE TEST CHO API
+-- 1) API GET /api/detai/by-class
+--    - Happy:  lop=SE103.U32  (có sinh viên 13520001, 13520007)
+--    - Empty:  lop=NO_CLASS   (không tồn tại lớp -> trả về [])
+--
+-- 2) API POST /api/detai/{msdt}/assign  body: {"mssv": "..."}
+--    - Happy:      msdt=97007, mssv=13520007  (đề tài & sinh viên đều chưa có quan hệ)
+--    - 404 NotFound:  msdt=999999, mssv=13520001
+--    - 400 BadRequest: msdt=97001,  mssv=99999999  (sinh viên không tồn tại)
+--    - 409 Conflict (đề tài đã có SV khác):
+--          msdt=97004, mssv=13520002  (97004 đã gán cho 13520001)
+--    - 409 Conflict (SV đã có đề tài khác):
+--          msdt=97006, mssv=13520001  (13520001 đã có đề tài 97004)
 
 
