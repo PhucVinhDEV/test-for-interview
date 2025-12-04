@@ -11,12 +11,12 @@ Khi ứng dụng khởi động, file `BTTH2_InterviewSetup.sql` sẽ tự độ
 Swagger UI đã được cấu hình sẵn, có thể mở tại:
 
 - `http://localhost:8080/swagger-ui.html`  
-  hoặc  
+  hoặc
 - `http://localhost:8080/swagger-ui/index.html`
 
 ### 2. Mục tiêu bài test
 
-Trong vòng **~20 phút**, ứng viên cần:
+ứng viên cần:
 
 - Sử dụng **Spring Boot, Spring Web, Spring Data JPA**.
 - Dựa trên database có sẵn, **implement 2 API REST**:
@@ -58,6 +58,11 @@ Trong project đã có sẵn 2 entity (gợi ý):
 
 - `SinhVien` map với bảng `SINHVIEN`.
 - `DeTai` map với bảng `DETAI` và quan hệ nhiều‑nhiều qua `SV_DETAI`.
+
+Ứng viên clone dự án từ GitHub:
+
+- Repo: [github.com/PhucVinhDEV/test-for-interview](https://github.com/PhucVinhDEV/test-for-interview)
+- Guide dành cho interviewer (tham khảo thêm yêu cầu chấm điểm): `docs/interview/BTTH2_API_Vibecoding_Guide.md`
 
 Ứng viên có thể dùng lại hoặc tự tạo entity/repository theo cách riêng, miễn là chạy đúng.
 
@@ -130,31 +135,28 @@ Trong project đã có sẵn 2 entity (gợi ý):
 
 ---
 
-### 5. Kỳ vọng tối thiểu trong buổi interview
+### 5. Dữ liệu & test case gợi ý
 
-Trong ~30 phút, **không bắt buộc hoàn hảo**, nhưng interviewer sẽ quan sát:
+- Dữ liệu được load từ `BTTH2_InterviewSetup.sql`. Các giá trị quan trọng:
+  - **Lớp có sinh viên thật**: `SE103.U32` (MSSV `13520001`, `13520007`)
+  - **Đề tài chưa có sinh viên**: `97007`
+  - **Sinh viên chưa có đề tài**: `13520007`
+  - **Đề tài đã có sinh viên**: `97004` (đang gán `13520001`)
+  - **Sinh viên đã có đề tài**: `13520001`
 
-- Ứng viên:
-  - Biết cách tạo `@RestController` và mapping endpoint.
-  - Biết inject `Repository` hoặc `Service` bằng `@Autowired` / constructor.
-  - Biết viết query JPA hoặc tự định nghĩa method trong `JpaRepository`.
-  - Biết xử lý các case lỗi cơ bản và trả về HTTP status hợp lý.
-- Có thể test được API qua Swagger UI hoặc Postman:
-  - Gọi `GET /api/detai/by-class?lop=...`
-  - Gọi `POST /api/detai/{msdt}/assign` với JSON body.
+| API                             | Case                       | Input                                                                                | Kết quả mong đợi                                                              |
+| ------------------------------- | -------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| GET `/api/detai/by-class`       | Happy                      | `lop=SE103.U32`                                                                      | Đề tài đã gán sinh viên lớp này (ví dụ `97004`) hiển thị `mssv`,`tensv`,`lop` |
+|                                 | Empty                      | `lop=NO_CLASS`                                                                       | Trả về `[]`                                                                   |
+| POST `/api/detai/{msdt}/assign` | Happy                      | `msdt=97007`, body `{"mssv":"13520007"}`                                             | 200 + trả về đề tài với sinh viên mới                                         |
+|                                 | 404                        | `msdt=999999`, body `{"mssv":"13520001"}`                                            | HTTP 404                                                                      |
+|                                 | 400 (SV không tồn tại)     | `msdt=97001`, body `{"mssv":"99999999"}`                                             | HTTP 400                                                                      |
+|                                 | 400 (thiếu mssv)           | `msdt=97007`, body `{}` hoặc `{"mssv":""}`                                           | HTTP 400                                                                      |
+|                                 | 409 (đề tài đã có SV khác) | `msdt=97004`, body `{"mssv":"13520002"}`                                             | HTTP 409                                                                      |
+|                                 | 409 (SV đã có đề tài)      | `msdt=97006`, body `{"mssv":"13520001"}`                                             | HTTP 409                                                                      |
+|                                 | Idempotent check           | `msdt=97004`, body `{"mssv":"13520001"}`                                             | Nên trả 200 (không tạo bản ghi trùng)                                         |
+|                                 | Chuỗi nhiều bước           | 1) POST `97007` ↔ `13520007`; 2) GET `lop=SE103.U32`; 3) POST `97007` với `13520002` | Bước 1 thành công, bước 2 thấy dữ liệu mới, bước 3 nhận 409                   |
 
-### 6. Gợi ý cấu trúc code (tham khảo – không bắt buộc)
+Ứng viên có thể dùng Swagger UI hoặc Postman chạy theo bảng trên để xác nhận kết quả.
 
-- Package đề xuất:
-  - `entity` – chứa `SinhVien`, `DeTai`.
-  - `repository` – chứa `SinhVienRepository`, `DeTaiRepository`.
-  - `service` – chứa `DeTaiService`.
-  - `controller` – chứa `DeTaiController`.
-  - `dto` hoặc `model` – chứa request/response DTO cho API.
-
-Ứng viên có thể chọn cách tổ chức khác nếu muốn, miễn là:
-
-- Code dễ đọc, dễ hiểu.
-- API chạy đúng theo yêu cầu đề bài.
-
-
+---

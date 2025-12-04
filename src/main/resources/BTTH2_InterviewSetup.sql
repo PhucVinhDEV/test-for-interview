@@ -97,5 +97,14 @@ INSERT INTO SV_DETAI (MSSV, MSDT) VALUES
 --          msdt=97004, mssv=13520002  (97004 đã gán cho 13520001)
 --    - 409 Conflict (SV đã có đề tài khác):
 --          msdt=97006, mssv=13520001  (13520001 đã có đề tài 97004)
+--    - 400 BadRequest (body thiếu mssv hoặc rỗng):
+--          msdt=97007, body: {}
+--          msdt=97007, body: {"mssv": ""}
+--    - 409 Conflict (đề tài tự nhận lại chính sinh viên đang giữ):
+--          msdt=97004, mssv=13520001  (nên trả 200 vì cùng sinh viên) -> dùng để kiểm tra logic duplicate
+--    - Multi-step: 
+--          1. POST msdt=97007, mssv=13520007  -> expect 200
+--          2. GET  /api/detai/by-class?lop=SE103.U32 -> đề tài 97007 phải hiển thị mssv=13520007
+--          3. POST msdt=97007, mssv=13520002 -> expect 409 (đề tài đã có sinh viên khác)
 
 
